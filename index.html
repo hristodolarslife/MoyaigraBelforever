@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Христодоллары: Белокуриха Forever</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: #0a0a15;
+            color: #fff;
+            font-family: 'Press Start 2P', cursive;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #game-container {
+            width: 900px;
+            height: 680px;
+            background: #2d2d44;
+            border: 4px solid #f1c40f;
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 0 0 40px rgba(241, 196, 15, 0.6);
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* HUD */
+        #hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.75);
+            border-bottom: 2px solid #f1c40f;
+            font-size: 8px;
+            z-index: 5;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        #hud span { color: #f1c40f; }
+        #blessing { color: #2ecc71 !important; text-shadow: 0 0 8px #2ecc71; }
+
+        /* ПАНЕЛЬ КНОПОК ПОВЕРХ ИГРЫ */
+        #ui-panel {
+            position: absolute;
+            top: 45px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 12, 41, 0.9);
+            border: 2px solid #f1c40f;
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 5px;
+            z-index: 6;
+            max-width: 95%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+        }
+
+        .btn {
+            background: #f1c40f;
+            color: #000;
+            border: 2px solid #fff;
+            padding: 7px 10px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 7px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            text-transform: uppercase;
+            text-decoration: none;
+            display: inline-block;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        .btn:hover { transform: scale(1.05); background: #fff; border-color: #f1c40f; }
+        .btn:active { transform: scale(0.95); }
+
+        .btn-games { background: #3498db; color: #fff; }
+        .btn-games:hover { background: #5dade2; border-color: #3498db; }
+
+        .btn-candle { background: #e67e22; color: #fff; }
+        .btn-candle:hover { background: #f39c12; border-color: #e67e22; }
+
+        .btn-chat { background: #9b59b6; color: #fff; }
+        .btn-chat:hover { background: #af7ac5; border-color: #9b59b6; }
+
+        .btn-pray { background: #2ecc71; color: #fff; }
+        .btn-pray:hover { background: #58d68d; border-color: #2ecc71; }
+
+        .btn-donate { background: #e74c3c; color: #fff; }
+        .btn-donate:hover { background: #ec7063; border-color: #e74c3c; }
+
+        .btn-christ { background: #8e44ad; color: #fff; }
+        .btn-christ:hover { background: #a569bd; border-color: #8e44ad; }
+
+        .btn-film { background: #c0392b; color: #fff; }
+        .btn-film:hover { background: #e74c3c; border-color: #c0392b; }
+
+        .btn-book { background: #16a085; color: #fff; }
+        .btn-book:hover { background: #1abc9c; border-color: #16a085; }
+
+        .btn-leader { background: #f39c12; color: #fff; }
+        .btn-leader:hover { background: #f1c40f; border-color: #f39c12; }
+
+        /* ВТОРАЯ ПАНЕЛЬ */
+        #christ-panel {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 12, 41, 0.9);
+            border: 2px solid #8e44ad;
+            border-radius: 8px;
+            padding: 6px 8px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 4px;
+            z-index: 6;
+            max-width: 95%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+        }
+
+        #christ-panel .btn {
+            font-size: 6px;
+            padding: 5px 8px;
+        }
+
+        /* МОДАЛЬНОЕ ОКНО */
+        #modal {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1a1a2e;
+            border: 4px solid #f1c40f;
+            padding: 22px;
+            text-align: center;
+            z-index: 20;
+            width: 85%;
+            max-width: 520px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.9);
+            border-radius: 8px;
+            max-height: 90%;
+            overflow-y: auto;
+        }
+
+        #modal h2 {
+            color: #f1c40f;
+            font-size: 10px;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        #modal p {
+            font-size: 8px;
+            line-height: 1.7;
+            margin-bottom: 14px;
+            color: #ddd;
+        }
+
+        #modal .highlight { color: #2ecc71; }
+        #modal .sber {
+            color: #3498db;
+            font-size: 9px;
+            display: block;
+            margin: 8px 0;
+            word-break: break-word;
+        }
+
+        /* СВЕЧА */
+        #candle {
+            position: absolute;
+            font-size: 60px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            display: none;
+            z-index: 7;
+            filter: drop-shadow(0 0 20px #f39c12);
+            transition: transform 0.5s ease-out, opacity 0.5s;
+            opacity: 0;
+        }
+
+        .candle-show {
+            transform: translate(-50%, -50%) scale(1) !important;
+            opacity: 1 !important;
+        }
+
+        /* ЭКРАН СТАРТА */
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 12, 41, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 15;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #start-screen h1 {
+            font-size: 22px;
+            color: #f1c40f;
+            text-shadow: 3px 3px 0 #000, 0 0 20px #f1c40f;
+            margin-bottom: 12px;
+        }
+
+        #start-screen p {
+            font-size: 9px;
+            line-height: 1.7;
+            color: #ddd;
+            margin-bottom: 20px;
+            max-width: 80%;
+        }
+
+        @media (max-width: 920px) {
+            #game-container { width: 100%; height: 100vh; border-radius: 0; border-width: 2px; }
+            .btn { font-size: 6px; padding: 5px 7px; }
+            #start-screen h1 { font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- HUD -->
+    <div id="hud">
+        <div>XCD: <span id="score">1 000 000 000 000 000</span></div>
+        <div>Играющих: <span id="players">103 300 700</span></div>
+        <div>Уровень: <span id="level">1</span>/10</div>
+        <div>Благословение: <span id="blessing">ЕСТЬ</span></div>
+    </div>
+
+    <!-- ОСНОВНЫЕ КНОПКИ -->
+    <div id="ui-panel">
+        <button class="btn btn-pray" onclick="pray()">🙏 ПОМОЛИТЬСЯ</button>
+        <button class="btn btn-donate" onclick="donate()">🕯️ 10 СВЕЧЕЙ</button>
+        <button class="btn btn-leader" onclick="showLeaderboard()">🏆 ЛИДЕРЫ</button>
+        <a class="btn btn-games" href="https://hristodolarslife.github.io/IzVodibenzin/" target="_blank">🎮 GAMES</a>
+        <a class="btn btn-candle" href="https://iisus834-jpg.github.io/-/" target="_blank">💳 СВЕЧА</a>
+        <a class="btn btn-chat" href="https://max.ru/join/7L4pJP-zPWQPx5KhVoBB8vN34m2RsOwICIHoQizD7CU" target="_blank">💬 ОБЩЕНИЕ</a>
+        <a class="btn btn-book" href="https://max.ru/join/7L4pJP-zPWQPx5KhVoBB8vN34m2RsOwICIHoQizD7CU" target="_blank">📖 КНИГИ</a>
+    </div>
+
+    <!-- ХРИСТИАНСКИЕ РЕСУРСЫ -->
+    <div id="christ-panel">
+        <a class="btn btn-christ" href="https://play.google.com/store/apps/details?id=air.YouTestament" target="_blank">📱 YouTestament</a>
+        <a class="btn btn-christ" href="https://store.steampowered.com/app/1198970/I_Am_Jesus_Christ/" target="_blank">💻 I Am Jesus Christ</a>
+        <a class="btn btn-christ" href="https://diveevo-monastyr.ru/" target="_blank">⛪ Дивеево</a>
+        <a class="btn btn-christ" href="https://tbn-tv.com/" target="_blank">📺 ТБН</a>
+        <a class="btn btn-christ" href="https://tv-soyuz.ru/" target="_blank">📡 Союз</a>
+        <a class="btn btn-film" href="https://asd.cinema-24.in/36599-syn-bozhij-2014.html" target="_blank">🎬 Сын Божий</a>
+        <a class="btn btn-christ" href="https://www.bibleonline.ru/" target="_blank">📖 Библия Онлайн</a>
+    </div>
+
+    <!-- СВЕЧА -->
+    <div id="candle">🕯️</div>
+
+    <!-- СТАРТОВЫЙ ЭКРАН -->
+    <div id="start-screen">
+        <h1>ХРИСТОДОЛЛАРЫ</h1>
+        <p>
+            Путь паломника в Белокурихе.<br>
+            Играющих: 103 300 700<br>
+            Собирай XCD и делай добрые дела.
+        </p>
+        <button class="btn btn-pray" onclick="startGame()">▶ НАЧАТЬ ПУТЬ</button>
+    </div>
+
+    <!-- МОДАЛКА -->
+    <div id="modal">
+        <h2 id="modal-title">Задание</h2>
+        <p id="modal-text">Текст задания...</p>
+        <button class="btn btn-pray" id="modal-btn" onclick="closeModal()">ВЫПОЛНЕНО</button>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const playersEl = document.getElementById('players');
+    const levelEl = document.getElementById('level');
+    const blessingEl = document.getElementById('blessing');
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalText = document.getElementById('modal-text');
+    const modalBtn = document.getElementById('modal-btn');
+    const candle = document.getElementById('candle');
+    const startScreen = document.getElementById('start-screen');
+
+    // === ТАБЛИЦА ЛИДЕРОВ ===
+    // Первое место — ТЫ (корона 👑 + подпись БЕЛОКУРИХА FOREVER)
+    const leaderboard = [
+        { name: "👑 Христодолларс", subtitle: "БЕЛОКУРИХА FOREVER", xcd: 1000000000000000, emoji: "👑", isYou: true },
+        { name: "Патриарх Кирилл", subtitle: "☦️ Первосвятитель", xcd: 777777777777, emoji: "☦️" },
+        { name: "В.В.П-Н", subtitle: "🎖️ Лидер", xcd: 555555555555, emoji: "🎖️" },
+        { name: "Трамп", subtitle: "🇺🇸 Президент", xcd: 333333333333, emoji: "🇺🇸" },
+        { name: "Митрополит Онуфрий", subtitle: "⛪ Митрополит", xcd: 111111111111, emoji: "⛪" },
+        { name: "Епископ Варсонофий", subtitle: "✝️ Епископ", xcd: 88888888888, emoji: "✝️" },
+        { name: "Митрополит Иларион", subtitle: "📖 Митрополит", xcd: 55555555555, emoji: "📖" },
+        { name: "Епископ Тихон", subtitle: "🕊️ Епископ", xcd: 33333333333, emoji: "🕊️" }
+    ];
+
+    let score = 1000000000000000;
+    let players = 103300700;
+    let level = 1;
+    let gameRunning = false;
+    let keys = {};
+
+    let stars = [];
+    let clouds = [];
+    let time = 0;
+
+    let autoCounter = 0;
+    const AUTO_INTERVAL = 60;
+
+    const tasks = [
+        { title: "Уровень 1: Райский сад", text: "Сходи в церковь и помолись. Поставь свечку за здравие." },
+        { title: "Уровень 2: Цветущий луг", text: "Помоги бабушке донести сумку до дома." },
+        { title: "Уровень 3: Тропа ангелов", text: "Помолись и запроси 300 руб. Пароль: JESUS300" },
+        { title: "Уровень 4: Тёмный лес", text: "Позвони родителям, просто чтобы узнать, как у них дела." },
+        { title: "Уровень 5: Гора Белуха", text: "Сделай зарядку на свежем воздухе (в Белокурихе это полезно!)." },
+        { title: "Уровень 6: Храм под горой", text: "Пожертвуй небольшую сумму на восстановление храма." },
+        { title: "Уровень 7: Шамбала", text: "Прочитай молитву или медитируй 5 минут в тишине." },
+        { title: "Уровень 8: Космический ковчег", text: "Улыбнись прохожему и пожелай ему хорошего дня." },
+        { title: "Уровень 9: Врата света", text: "Собери мусор на улице и выбрось в урну." },
+        { title: "Уровень 10: Трон Христа", text: "Ты прошёл путь! Получи суперприз от Настоящего Христодоллара!" }
+    ];
+
+    function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    }
+
+    function formatBig(num) {
+        if (num >= 1e15) return (num / 1e15).toFixed(0) + ' квадрлн';
+        if (num >= 1e12) return (num / 1e12).toFixed(0) + ' трлн';
+        if (num >= 1e9) return (num / 1e9).toFixed(0) + ' млрд';
+        if (num >= 1e6) return (num / 1e6).toFixed(0) + ' млн';
+        if (num >= 1e3) return (num / 1e3).toFixed(0) + ' тыс';
+        return num.toString();
+    }
+
+    function init() {
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        document.addEventListener('keydown', (e) => {
+            keys[e.code] = true;
+            if (e.code === 'Space') e.preventDefault();
+        });
+        document.addEventListener('keyup', (e) => keys[e.code] = false);
+        initBackground();
+        updateHUD();
+        requestAnimationFrame(gameLoop);
+    }
+
+    function initBackground() {
+        stars = [];
+        for (let i = 0; i < 100; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height * 0.65,
+                size: Math.random() * 2.5 + 0.5,
+                speed: Math.random() * 0.03 + 0.005,
+                phase: Math.random() * Math.PI * 2
+            });
+        }
+        clouds = [];
+        for (let i = 0; i < 6; i++) {
+            clouds.push({
+                x: Math.random() * canvas.width,
+                y: 70 + Math.random() * 180,
+                size: 40 + Math.random() * 60,
+                speed: 0.15 + Math.random() * 0.35
+            });
+        }
+    }
+
+    function resizeCanvas() {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight;
+        initBackground();
+    }
+
+    function startGame() {
+        startScreen.style.display = 'none';
+        gameRunning = true;
+        resizeCanvas();
+    }
+
+    function updateHUD() {
+        scoreEl.textContent = formatNumber(score);
+        playersEl.textContent = formatNumber(players);
+        levelEl.textContent = level;
+        blessingEl.textContent = 'ЕСТЬ';
+    }
+
+    function tickCounters() {
+        autoCounter++;
+        if (autoCounter >= AUTO_INTERVAL) {
+            autoCounter = 0;
+            const growthOptions = [1, 3, 10, 50, 100, 777, 1000, 7777];
+            const growth = growthOptions[Math.floor(Math.random() * growthOptions.length)];
+            score += growth;
+
+            const playerGrowth = Math.floor(Math.random() * 3) + 1;
+            players += playerGrowth;
+
+            updateHUD();
+            showFloatingGain(growth);
+        }
+    }
+
+    let floatingGains = [];
+
+    function showFloatingGain(amount) {
+        floatingGains.push({
+            text: '+' + formatNumber(amount) + ' XCD',
+            x: canvas.width / 2 + (Math.random() * 240 - 120),
+            y: canvas.height / 2 + 140,
+            life: 90,
+            maxLife: 90,
+            vy: -1.2
+        });
+    }
+
+    function drawFloatingGains() {
+        floatingGains = floatingGains.filter(f => f.life > 0);
+        floatingGains.forEach(f => {
+            const alpha = f.life / f.maxLife;
+            ctx.save();
+            ctx.font = '9px "Press Start 2P"';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = `rgba(46, 204, 113, ${alpha})`;
+            ctx.shadowColor = '#2ecc71';
+            ctx.shadowBlur = 15;
+            ctx.fillText(f.text, f.x, f.y);
+            ctx.restore();
+            f.y += f.vy;
+            f.life--;
+        });
+    }
+
+    function gameLoop() {
+        time += 1;
+        if (gameRunning) tickCounters();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // НЕБО
+        const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        skyGradient.addColorStop(0, '#0a0a2e');
+        skyGradient.addColorStop(0.3, '#1e3c72');
+        skyGradient.addColorStop(0.6, '#5b7bb5');
+        skyGradient.addColorStop(0.85, '#f39c12');
+        skyGradient.addColorStop(1, '#FFE4B5');
+        ctx.fillStyle = skyGradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // ЗВЁЗДЫ
+        stars.forEach(s => {
+            const twinkle = Math.sin(time * s.speed + s.phase) * 0.5 + 0.5;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.size * twinkle, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 200, ${0.3 + twinkle * 0.7})`;
+            ctx.fill();
+        });
+
+        // ОБЛАКА
+        clouds.forEach(cl => {
+            cl.x += cl.speed;
+            if (cl.x > canvas.width + 100) cl.x = -100;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.beginPath();
+            ctx.arc(cl.x, cl.y, cl.size * 0.6, 0, Math.PI * 2);
+            ctx.arc(cl.x + cl.size * 0.5, cl.y - 5, cl.size * 0.5, 0, Math.PI * 2);
+            ctx.arc(cl.x - cl.size * 0.5, cl.y + 5, cl.size * 0.4, 0, Math.PI * 2);
+            ctx.arc(cl.x + cl.size * 0.3, cl.y + 10, cl.size * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // СОЛНЦЕ
+        const sunX = canvas.width - 120;
+        const sunY = 110;
+        const sunGlow = ctx.createRadialGradient(sunX, sunY, 10, sunX, sunY, 110);
+        sunGlow.addColorStop(0, 'rgba(255, 220, 100, 0.9)');
+        sunGlow.addColorStop(0.4, 'rgba(255, 180, 50, 0.4)');
+        sunGlow.addColorStop(1, 'rgba(255, 150, 0, 0)');
+        ctx.fillStyle = sunGlow;
+        ctx.beginPath();
+        ctx.arc(sunX, sunY, 110, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(sunX, sunY, 40, 0, Math.PI * 2);
+        ctx.fillStyle = '#FFE066';
+        ctx.shadowColor = '#f1c40f';
+        ctx.shadowBlur = 40;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // ГОРЫ
+        ctx.fillStyle = '#2c3e50';
+        ctx.beginPath();
+        ctx.moveTo(0, canvas.height);
+        ctx.lineTo(120, canvas.height - 280);
+        ctx.lineTo(240, canvas.height - 200);
+        ctx.lineTo(360, canvas.height);
+        ctx.fill();
+
+        ctx.fillStyle = '#3d5a80';
+        ctx.beginPath();
+        ctx.moveTo(canvas.width - 400, canvas.height);
+        ctx.lineTo(canvas.width - 260, canvas.height - 250);
+        ctx.lineTo(canvas.width - 120, canvas.height - 180);
+        ctx.lineTo(canvas.width, canvas.height);
+        ctx.fill();
+
+        drawTserkovka(canvas.width / 2, canvas.height);
+
+        // НАДПИСЬ LAMBORGHINI
+        ctx.save();
+        ctx.textAlign = 'center';
+
+        ctx.font = '8px "Press Start 2P"';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+        ctx.fillText('ПРОЙДИ ИГРУ И ПОЛУЧИ ГЛАВНЫЙ ПРИЗ', canvas.width / 2 + 2, canvas.height / 2 - 115);
+        ctx.fillStyle = '#f1c40f';
+        ctx.shadowColor = '#f1c40f';
+        ctx.shadowBlur = 20;
+        ctx.fillText('ПРОЙДИ ИГРУ И ПОЛУЧИ ГЛАВНЫЙ ПРИЗ', canvas.width / 2, canvas.height / 2 - 117);
+
+        ctx.font = '10px "Press Start 2P"';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+        ctx.fillText('ОТ ХРИСТОДОЛЛАРА — LAMBORGHINI', canvas.width / 2 + 2, canvas.height / 2 - 95);
+        ctx.fillStyle = '#e74c3c';
+        ctx.shadowColor = '#e74c3c';
+        ctx.shadowBlur = 28;
+        ctx.fillText('ОТ ХРИСТОДОЛЛАРА — LAMBORGHINI', canvas.width / 2, canvas.height / 2 - 98);
+
+        ctx.restore();
+
+        // БЕЛОКУРИХА FOREVER
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.font = '22px "Press Start 2P"';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillText('БЕЛОКУРИХА', canvas.width / 2 + 3, canvas.height / 2 - 27);
+        ctx.fillStyle = '#f1c40f';
+        ctx.shadowColor = '#f1c40f';
+        ctx.shadowBlur = 20;
+        ctx.fillText('БЕЛОКУРИХА', canvas.width / 2, canvas.height / 2 - 30);
+
+        ctx.font = '30px "Press Start 2P"';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillText('FOREVER', canvas.width / 2 + 3, canvas.height / 2 + 18);
+        ctx.fillStyle = '#2ecc71';
+        ctx.shadowColor = '#2ecc71';
+        ctx.shadowBlur = 25;
+        ctx.fillText('FOREVER', canvas.width / 2, canvas.height / 2 + 15);
+
+        ctx.font = '10px "Press Start 2P"';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillText('КУПИ ЖЕТОН ХРИСТОДОЛЛАРС', canvas.width / 2 + 2, canvas.height / 2 + 58);
+        ctx.fillStyle = '#e74c3c';
+        ctx.shadowColor = '#e74c3c';
+        ctx.shadowBlur = 15;
+        ctx.fillText('КУПИ ЖЕТОН ХРИСТОДОЛЛАРС', canvas.width / 2, canvas.height / 2 + 56);
+
+        ctx.font = '9px "Press Start 2P"';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillText('И СТАНЬ ПОЛНОПРАВНЫМ УЧАСТНИКОМ ИГРЫ', canvas.width / 2 + 2, canvas.height / 2 + 78);
+        ctx.fillStyle = '#f39c12';
+        ctx.shadowColor = '#f39c12';
+        ctx.shadowBlur = 12;
+        ctx.fillText('И СТАНЬ ПОЛНОПРАВНЫМ УЧАСТНИКОМ ИГРЫ', canvas.width / 2, canvas.height / 2 + 76);
+
+        ctx.font = '11px "Press Start 2P"';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillText('200 РУБ У АДМИН', canvas.width / 2 + 2, canvas.height / 2 + 100);
+        ctx.fillStyle = '#2ecc71';
+        ctx.shadowColor = '#2ecc71';
+        ctx.shadowBlur = 15;
+        ctx.fillText('200 РУБ У АДМИН', canvas.width / 2, canvas.height / 2 + 98);
+
+        // КНИГИ
+        ctx.font = '8px "Press Start 2P"';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillText('📖 КНИГА «ВОСХОЖДЕНИЕ НА ВЕРШИНУ МИРА»', canvas.width / 2 + 2, canvas.height / 2 + 125);
+        ctx.fillStyle = '#1abc9c';
+        ctx.shadowColor = '#1abc9c';
+        ctx.shadowBlur = 12;
+        ctx.fillText('📖 КНИГА «ВОСХОЖДЕНИЕ НА ВЕРШИНУ МИРА»', canvas.width / 2, canvas.height / 2 + 123);
+
+        ctx.font = '7px "Press Start 2P"';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillText('200 РУБ · 15 СТР · 2 ЧАСТЬ — 500 РУБ · 70 СТР', canvas.width / 2 + 2, canvas.height / 2 + 142);
+        ctx.fillStyle = '#f1c40f';
+        ctx.shadowColor = '#f1c40f';
+        ctx.shadowBlur = 10;
+        ctx.fillText('200 РУБ · 15 СТР · 2 ЧАСТЬ — 500 РУБ · 70 СТР', canvas.width / 2, canvas.height / 2 + 140);
+
+        ctx.font = '8px "Press Start 2P"';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillText('ПОЛНОЕ ПРОХОЖДЕНИЕ — 1737 СТР — 3000 РУБ', canvas.width / 2 + 2, canvas.height / 2 + 160);
+        ctx.fillStyle = '#e67e22';
+        ctx.shadowColor = '#e67e22';
+        ctx.shadowBlur = 12;
+        ctx.fillText('ПОЛНОЕ ПРОХОЖДЕНИЕ — 1737 СТР — 3000 РУБ', canvas.width / 2, canvas.height / 2 + 158);
+
+        ctx.font = '8px "Press Start 2P"';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillText('📕 КНИГА ЧИТЫ К ИГРЕ — 777 РУБ', canvas.width / 2 + 2, canvas.height / 2 + 178);
+        ctx.fillStyle = '#9b59b6';
+        ctx.shadowColor = '#9b59b6';
+        ctx.shadowBlur = 12;
+        ctx.fillText('📕 КНИГА ЧИТЫ К ИГРЕ — 777 РУБ', canvas.width / 2, canvas.height / 2 + 176);
+
+        ctx.restore();
+
+        // ВСПЛЫВАЮЩИЕ +XCD
+        drawFloatingGains();
+
+        // СЧЁТЧИК ИГРАЮЩИХ ВНИЗУ
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.font = '10px "Press Start 2P"';
+        const playersText = '👥 ИГРАЮЩИХ: ' + formatNumber(players);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.fillText(playersText, canvas.width / 2 + 2, canvas.height - 12);
+        ctx.fillStyle = '#3498db';
+        ctx.shadowColor = '#3498db';
+        ctx.shadowBlur = 15;
+        ctx.fillText(playersText, canvas.width / 2, canvas.height - 14);
+        ctx.restore();
+
+        // ТВОЙ СЧЁТ (с короной)
+        ctx.save();
+        ctx.textAlign = 'left';
+        ctx.font = '9px "Press Start 2P"';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+        ctx.fillText('👑 ВАШ XCD: ' + formatBig(score), 12, 78);
+        ctx.fillStyle = '#f1c40f';
+        ctx.shadowColor = '#f1c40f';
+        ctx.shadowBlur = 20;
+        ctx.fillText('👑 ВАШ XCD: ' + formatBig(score), 10, 76);
+        ctx.restore();
+    }
+
+    function drawTserkovka(cx, baseY) {
+        const mountainGradient = ctx.createLinearGradient(cx, baseY - 300, cx, baseY);
+        mountainGradient.addColorStop(0, '#8fa3b8');
+        mountainGradient.addColorStop(0.4, '#5a6b7d');
+        mountainGradient.addColorStop(1, '#2d3748');
+
+        ctx.fillStyle = mountainGradient;
+        ctx.beginPath();
+        ctx.moveTo(cx - 220, baseY);
+        ctx.lineTo(cx - 110, baseY - 180);
+        ctx.lineTo(cx - 45, baseY - 230);
+        ctx.lineTo(cx, baseY - 290);
+        ctx.lineTo(cx + 45, baseY - 230);
+        ctx.lineTo(cx + 110, baseY - 180);
+        ctx.lineTo(cx + 220, baseY);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#ecf0f1';
+        ctx.beginPath();
+        ctx.moveTo(cx - 45, baseY - 230);
+        ctx.lineTo(cx, baseY - 290);
+        ctx.lineTo(cx + 45, baseY - 230);
+        ctx.lineTo(cx + 22, baseY - 242);
+        ctx.lineTo(cx, baseY - 255);
+        ctx.lineTo(cx - 22, baseY - 242);
+        ctx.closePath();
+        ctx.fill();
+
+        const chapelY = baseY - 290;
+
+        ctx.fillStyle = '#f5f5dc';
+        ctx.fillRect(cx - 14, chapelY - 25, 28, 25);
+        ctx.strokeStyle = '#bdc3c7';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(cx - 14, chapelY - 25, 28, 25);
+
+        ctx.fillStyle = '#8B4513';
+        ctx.beginPath();
+        ctx.moveTo(cx - 18, chapelY - 25);
+        ctx.lineTo(cx, chapelY - 42);
+        ctx.lineTo(cx + 18, chapelY - 25);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#4a2c0a';
+        ctx.fillRect(cx - 4, chapelY - 12, 8, 12);
+
+        ctx.fillStyle = '#f1c40f';
+        ctx.beginPath();
+        ctx.arc(cx, chapelY - 48, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(241, 196, 15, 0.6)';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 12; i++) {
+            const angle = (Math.PI * 2 / 12) * i + time * 0.015;
+            const x1 = cx + Math.cos(angle) * 18;
+            const y1 = chapelY - 68 + Math.sin(angle) * 18;
+            const x2 = cx + Math.cos(angle) * 34;
+            const y2 = chapelY - 68 + Math.sin(angle) * 34;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+        }
+
+        ctx.fillStyle = '#f1c40f';
+        ctx.shadowColor = '#f1c40f';
+        ctx.shadowBlur = 25;
+        ctx.fillRect(cx - 2.5, chapelY - 88, 5, 35);
+        ctx.fillRect(cx - 11, chapelY - 76, 22, 5);
+        ctx.shadowBlur = 0;
+    }
+
+    function showLeaderboard() {
+        let html = '<div style="text-align: left; font-size: 8px; line-height: 2;">';
+        html += '<div style="text-align:center; color:#f1c40f; font-size:10px; margin-bottom:10px;">🏆 ТАБЛИЦА ЛИДЕРОВ 🏆</div>';
+
+        leaderboard.forEach((player, i) => {
+            let medal = '';
+            if (i === 0) medal = '🥇';
+            else if (i === 1) medal = '🥈';
+            else if (i === 2) medal = '🥉';
+            else medal = '&nbsp;&nbsp;' + (i + 1) + '.';
+
+            const isYou = player.isYou;
+            const color = isYou ? '#f1c40f' : (i < 3 ? '#2ecc71' : '#ddd');
+            const bg = isYou ? 'background:rgba(241,196,15,0.2); padding:6px; border-radius:6px; border:2px solid #f1c40f;' : '';
+
+            html += `<div style="${bg}color:${color}; margin-bottom:6px;">`;
+
+            // Твоя строка — с короной и надписью БЕЛОКУРИХА FOREVER
+            if (isYou) {
+                html += `<div style="font-size:10px; color:#f1c40f; text-shadow:0 0 10px #f1c40f;">👑👑👑</div>`;
+                html += `${medal} <strong style="font-size:10px;">${player.name}</strong><br>`;
+                html += `<span style="color:#2ecc71; font-size:9px; text-shadow:0 0 8px #2ecc71;">✨ БЕЛОКУРИХА FOREVER ✨</span><br>`;
+                html += `&nbsp;&nbsp;&nbsp;&nbsp;💰 <span style="color:#f1c40f;">${formatNumber(player.xcd)} XCD</span> <span style="color:#e74c3c;">(${formatBig(player.xcd)})</span>`;
+                html += ' <span style="color:#f1c40f;">← ТЫ</span>';
+            } else {
+                html += `${medal} ${player.emoji} <strong>${player.name}</strong>`;
+                if (player.subtitle) {
+                    html += ` <span style="color:#888; font-size:7px;">${player.subtitle}</span>`;
+                }
+                html += `<br>&nbsp;&nbsp;&nbsp;&nbsp;💰 ${formatNumber(player.xcd)} XCD <span style="color:#e74c3c;">(${formatBig(player.xcd)})</span>`;
+            }
+
+            html += '</div>';
+        });
+
+        html += '</div>';
+
+        modalTitle.textContent = "🏆 ЛИДЕРЫ ХРИСТОДОЛЛАРОВ";
+        modalText.innerHTML = html;
+        modal.style.display = 'block';
+        modalBtn.textContent = "ЗАКРЫТЬ";
+        modalBtn.onclick = () => modal.style.display = 'none';
+    }
+
+    function pray() {
+        if (!gameRunning) return;
+        const task = tasks[level - 1];
+        if (!task) return;
+
+        modalTitle.textContent = task.title;
+        let taskHtml = `Задание: <span class="highlight">${task.text}</span><br><br>`;
+        if (level === 3) {
+            taskHtml += `<span style="color: #f39c12; font-size: 9px;">💰 ЗАПРОС: 300 РУБ<br>🔑 ПАРОЛЬ: <strong>JESUS300</strong></span><br><br>`;
+        }
+        taskHtml += `Выполнил? Нажми кнопку ниже!`;
+        modalText.innerHTML = taskHtml;
+        modal.style.display = 'block';
+        modalBtn.textContent = "ВЫПОЛНЕНО (+50 XCD)";
+        modalBtn.onclick = () => {
+            score += 50;
+            level++;
+            updateHUD();
+            modal.style.display = 'none';
+            if (level > 10) endGame();
+        };
+    }
+
+    function donate() {
+        if (!gameRunning) return;
+
+        candle.style.display = 'block';
+        setTimeout(() => candle.classList.add('candle-show'), 50);
+
+        setTimeout(() => {
+            candle.classList.remove('candle-show');
+            setTimeout(() => candle.style.display = 'none', 500);
+
+            score += 100;
+            updateHUD();
+
+            modalTitle.textContent = "🕯️ 10 СВЕЧЕЙ ЗАЖЖЕНЫ!";
+            modalText.innerHTML = `
+                <span class="highlight">Твоя молитва будет услышана Богом!</span><br><br>
+                Переведи <strong>100 рублей</strong> на Сбер:<br>
+                <span class="sber">8 902 143 35 15<br>Александр</span>
+                <em>10 свечей = 100 руб.</em><br><br>
+                +100 XCD.
+            `;
+            modal.style.display = 'block';
+            modalBtn.textContent = "АМИНЬ";
+            modalBtn.onclick = () => modal.style.display = 'none';
+        }, 2000);
+    }
+
+    function endGame() {
+        gameRunning = false;
+        modalTitle.textContent = "JESUS";
+        modalText.innerHTML = `
+            <span style="color: #f1c40f; font-size: 12px;">Ты прошёл путь!</span><br><br>
+            Пароль: <span class="highlight">JESUS2026</span><br>
+            Ты получаешь суперприз от Настоящего Христодоллара — <strong style="color: #e74c3c;">LAMBORGHINI</strong>!<br><br>
+            <a class="btn btn-candle" href="https://iisus834-jpg.github.io/-/" target="_blank">ЗАБРАТЬ ПРИЗ</a>
+            <a class="btn btn-chat" href="https://max.ru/join/7L4pJP-zPWQPx5KhVoBB8vN34m2RsOwICIHoQizD7CU" target="_blank">💬 ОБЩЕНИЕ</a>
+        `;
+        modalBtn.textContent = "ЗАКРЫТЬ";
+        modalBtn.onclick = () => {
+            modal.style.display = 'none';
+            score = 1000000000000000; level = 1;
+            updateHUD();
+            startScreen.style.display = 'flex';
+            gameRunning = false;
+        };
+        modal.style.display = 'block';
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+    }
+
+    init();
+</script>
+</body>
+</html>
